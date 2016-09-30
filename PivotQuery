@@ -1,0 +1,285 @@
+--CREATE VIEW [dbo].[view_MasterView] AS
+	WITH DQ 
+		([Patient]
+		,[1]
+		,[2]
+		,[3]
+		,[4]
+		,[5]
+		,[6] 
+		,[7] 
+		,[8]
+		,[9]
+		,[10]
+		,[11]
+		,[12]
+		,[13]
+		,[14]
+		,[15]
+		,[16] 
+		,[17] 
+		,[18]
+		,[19]
+		,[20]
+		,[21]
+		,[22]
+		,[23]
+		,[24]
+		,[25]
+		,[26] 
+		,[27] 
+		,[28]
+		,[29]
+		,[30]
+		,[31]
+		,[32]
+		,[33]
+		,[34]
+		,[35]
+		,[36] 
+		,[37] 
+		,[38]
+		,[39] 
+		,[40]
+		,[41]
+		,[42]
+		,[43]
+		,[44]
+		,[45]
+		,[46] 
+		,[47] 
+		,[48]
+		,[49])
+	AS
+	(
+		SELECT [Patient]
+		,[1]
+		,[2]
+		,[3]
+		,[4]
+		,[5]
+		,[6] 
+		,[7] 
+		,[8]
+		,[9]
+		,[10]
+		,[11]
+		,[12]
+		,[13]
+		,[14]
+		,[15]
+		,[16] 
+		,[17] 
+		,[18]
+		,[19]
+		,[20]
+		,[21]
+		,[22]
+		,[23]
+		,[24]
+		,[25]
+		,[26] 
+		,[27] 
+		,[28]
+		,[29]
+		,[30]
+		,[31]
+		,[32]
+		,[33]
+		,[34]
+		,[35]
+		,[36] 
+		,[37] 
+		,[38]
+		,[39] 
+		,[40]
+		,[41]
+		,[42]
+		,[43]
+		,[44]
+		,[45]
+		,[46] 
+		,[47] 
+		,[48]
+		,[49]
+	FROM
+		(SELECT [Patient]
+			,[Question_Sequence]
+			,[Answer]
+		FROM [dbo].[tbl_Disease_Specific_Answers]
+		) AS Subquery
+	PIVOT 
+		(
+		MAX([Answer])
+		FOR [Question_Sequence] IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],
+				[11],[12],[13],[14],[15],[16],[17],[18],[19],[20],
+				[21],[22],[23],[24],[25],[26],[27],[28],[29],[30],
+				[31],[32],[33],[34],[35],[36],[37],[38],[39],[40],
+				[41],[42],[43],[44],[45],[46],[47],[48],[49])
+
+		) AS PivotTable
+	),
+	 CQ 
+		([Patient]
+		,[1]
+		,[2]
+		,[3]
+		,[4]
+		,[5]
+		,[6] 
+		,[7] 
+		,[8]
+		,[9]
+		,[10]
+		,[11]
+		,[12])
+	AS
+	(
+		SELECT [Patient]
+		,[1]
+		,[2]
+		,[3]
+		,[4]
+		,[5]
+		,[6] 
+		,[7] 
+		,[8]
+		,[9]
+		,[10]
+		,[11]
+		,[12]
+	FROM
+		(SELECT [Patient]
+			,[Question_Sequence]
+			,[Answer]
+		FROM [dbo].[tbl_Contributors_Answers]
+		) AS Subquery2
+	PIVOT 
+		(
+		MAX([Answer])
+		FOR [Question_Sequence] IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],
+				[11],[12])
+
+		) AS PivotTable2
+	)
+	SELECT Pt.[Patient]
+			,[MRN]
+			,[DOB]
+			,[Admission_Account_Number] AS [Index admission account number]
+			,[Readmission_Account_Number] AS [Readmission account number]
+			,[Facility].[Facility] AS [Facility]
+			,[Disposition] AS [Discharge disposition (index)]
+			,[Disease].[Disease]
+			,[Admission_Discharge_Disposition_Other] AS [Discharge disposition detail]
+			,CASE WHEN [Admission_Disease_Specific_Education] = 1 THEN 'Yes' 
+				  WHEN [Admission_Disease_Specific_Education] = 0 THEN 'No' 
+				  ELSE 'No data' END AS [Disease-specific education]
+			,CASE WHEN [Admission_Follow_Up_Scheduled] = 1 THEN 'Yes' 
+				  WHEN [Admission_Follow_Up_Scheduled] = 0 THEN 'No' 
+				  ELSE 'No data' END AS [Follow-up scheduled]
+			,CASE WHEN [Admission_Follow_Up_Scheduled] = 0 THEN 'No appt scheduled'
+				  ELSE [Admission_Follow_Up_Attended] END AS [Follow-up appt attended by pt]
+			,CASE WHEN [Admission_Follow_Up_Phone_Call] = 1 THEN 'Yes' 
+				  WHEN [Admission_Follow_Up_Phone_Call] = 0 THEN 'No' 
+				  ELSE 'No data' END AS [Follow-up phone call]
+			,CASE WHEN [Admission_Follow_Up_Scheduled] = 0 THEN 'No appt scheduled'
+				  ELSE [Admission_Follow_Up_Location] END AS [Follow-up location]
+			,[Admission_Follow_Up_Location_Other] AS [Follow-up location "other" detail]
+			,[Admission_Palliative_Care_Consulted] AS [Palliative care consult]
+			,[ReadmitFacility].Facility AS [Facility to which pt readmitted]
+			,[ReadmitDisease].[Disease] AS [Readmission disease]
+			,CASE WHEN [Readmissioin_Patient_Initiated] = 1 THEN 'Yes'
+				  WHEN [Readmissioin_Patient_Initiated] = 0 THEN 'No' 
+				  ELSE 'No data' END AS [Pt initiated medical contact (prior 48 hrs)]
+			,CASE WHEN [Readmissioin_Patient_Initiated] = 0 THEN 'Not applicable'
+				  WHEN [Readmission_Patied_Initiated_Type] = 1 THEN 'Office visit'
+				  WHEN [Readmission_Patied_Initiated_Type] = 2 THEN 'Phone call'
+				  WHEN [Readmission_Patied_Initiated_Type] = 2 THEN 'ED visit'
+				  ELSE 'No data' END AS [Pt initiated medical contact type]
+			,[ReadmitSource].[Description] AS [Readmission source]
+			,[Readmission_From_Other] AS [Readmission source "other" detail]
+			,CASE WHEN Pt.[IsActive] = 1 THEN 'No' ELSE 'Yes' END AS [Archived]
+			,[Created] AS [Record started datetime]
+			,[IsNotes]
+			,[Admission_Discharge_Date] AS [Index admission discharge date]
+			,[Readmission_Admission_Date] AS [Readmission date]
+			,DQ.[1] AS [Diagnosed with CAP or HCAP (Pneumonia)]
+			,DQ.[2] AS [Appropriate antibiotic ordered (Pneumonia)]
+			,DQ.[3] AS [Completed appropriate course of PO antibiotics (Pneumonia)]
+			,DQ.[4] AS [Pneumonia orderset utilized (Pneumonia)]
+			,DQ.[5] AS [Pulmonology consulted (Pneumonia)]
+			,DQ.[6] AS [Infectious Disease consulted (Pneumonia)]
+			,DQ.[7] AS [Patient afebrile prior to discharge (Pneumonia)]
+			,DQ.[8] AS [Pulmonology consulted (COPD)]
+			,DQ.[9] AS [COPD orderset utilized (COPD)]
+			,DQ.[10] AS [PFT or bedside spirometry within last two years (COPD)]
+			,DQ.[11] AS [Antibiotics ordered (COPD)]
+			,DQ.[12] AS [If antibiotics were ordered, why (COPD)]
+			,DQ.[13] AS [Exercise oximetry done prior to discharge (COPD)]
+			,DQ.[14] AS [Inhaler Training Completed (COPD)]
+			,DQ.[15] AS [CHG bath x2 done prior to surgery (THA/TKA)]
+			,DQ.[16] AS [IV antibiotics within 30 minutes of incision / tourniquet (THA/TKA)]
+			,DQ.[17] AS [Pre-operative joint class attended (THA/TKA)]
+			,DQ.[18] AS [Surgeon (THA/TKA)]
+			,DQ.[19] AS [Surgeon detail (THA/TKA)]
+			,DQ.[20] AS [Cardiology consulted (AMI)]
+			,DQ.[21] AS [Treatment (AMI)]
+			,DQ.[22] AS [Cardiac rehab referral made (AMI)]
+			,DQ.[23] AS [If yes, was cardiac rehab attended (AMI)]
+			,DQ.[24] AS [If cardiac rehab was not attended, why (AMI)]
+			,DQ.[25] AS [LVEF < 40% or moderate-severe LVF (AMI)]
+			,DQ.[26] AS [If LVEF < 40%, was ACE or ARB ordered at discharge (AMI)]
+			,DQ.[27] AS [Aspirin ordered at discharge (AMI)]
+			,DQ.[28] AS [Beta Blocker ordered at discharge? (AMI)]
+			,DQ.[29] AS [Statin ordered at discharge (AMI)]
+			,DQ.[30] AS [Cardiology consulted (CHF)]
+			,DQ.[31] AS [Heart Failure orderset utilized (CHF)]
+			,DQ.[32] AS [Transitions Nurse involved during index admission (CHF)]
+			,DQ.[33] AS [LVEF < 40% or moderate-severe LVF (CHF)]
+			,DQ.[34] AS [ACE or ARB part of pre-admission or home regimen (CHF)]
+			,DQ.[35] AS [Beta Blocker part of pre-admission or home regimen (CHF)]
+			,DQ.[36] AS [Beta Blocker administered throughout index admission (CHF)]
+			,DQ.[37] AS [Heart failure type (CHF)]
+			,DQ.[38] AS [ACE or ARB administered throughout index admission (CHF)]
+			,DQ.[39] AS [ACE or ARB prescribed at discharge (CHF)]
+			,DQ.[40] AS [Diuretic part of pre-admission or home regimen (CHF)]
+			,DQ.[41] AS [Diuretic administered throughout index admission (CHF)]
+			,DQ.[42] AS [Diuretic prescribed at discharge (CHF)]
+			,DQ.[43] AS [If diastolic heart failure, was anti-hypertensive part of pre-admission or home regimen (CHF)]
+			,DQ.[44] AS [If diastolic heart failure, was anti-hypertensive administered throughout index admission (CHF)]
+			,DQ.[45] AS [If diastolic heart failure, was anti-hypertensive prescribed at discharge (CHF)]
+			,DQ.[46] AS [Follow-up appointment location (CHF)]
+			,DQ.[47] AS [Beta Blocker prescribed at discharge (CHF)]
+			,DQ.[48] AS [Pre-operative joint class attended detail (THA/TKA)]
+			,DQ.[49] AS [AMI orderset utilized (AMI)]
+			,CQ.[1] AS [Lack of transitions bundle element?]
+			,CQ.[2] AS [Lack of end-of-life planning during index admission]
+			,CQ.[3] AS [Inappropriate inpatient admission]
+			,CQ.[4] AS [Planned readmission]
+			,CQ.[5] AS [Medication Issue]
+			,CQ.[6] AS [Patient or family refusal of recommended treatment / care plan]
+			,CQ.[7] AS [Socioeconomic barriers]
+			,CQ.[8] AS [Acute illness, same as index admission diagnosis, requiring inpatient care]
+			,CQ.[9] AS [Chronic illness exacerbation different from index admission diagnosis requiring inpatient care]
+			,CQ.[10] AS [Acute illness different from index admission diagnosis requiring inpatient care]
+			,CQ.[11] AS [Outpatient services not available or inadequate]
+			,CQ.[12] AS [Patient delay in seeking care]
+
+		FROM [dbo].[tbl_Patient] Pt
+		LEFT JOIN DQ
+			ON Pt.[Patient] = DQ.[Patient]
+		LEFT JOIN CQ
+			ON Pt.[Patient] = CQ.[Patient]
+		LEFT JOIN [dbo].[tbl_Facility] Facility
+			ON Pt.Admission_Facility_Sequence = Facility.[Sequence]
+		LEFT JOIN [dbo].[tbl_Discharge_Disposition] Dispo
+			ON Pt.Admission_Discharge_Disposition = Dispo.[Sequence]
+		LEFT JOIN [dbo].[tbl_Disease] Disease
+			ON Pt.[Admission_Disease_Sequence] = Disease.[Sequence]
+		LEFT JOIN [dbo].[tbl_Facility] ReadmitFacility
+			ON Pt.Readmission_Facility_Sequence = ReadmitFacility.[Sequence]
+		LEFT JOIN [dbo].[tbl_Disease] ReadmitDisease
+			ON Pt.[Readmission_Disease_Sequence] = ReadmitDisease.[Sequence]
+		LEFT JOIN [dbo].[tbl_Admission_From] ReadmitSource
+			ON Pt.[Readmission_From_Sequence] = ReadmitSource.[Sequence]
+		WHERE IsTrash = 0
